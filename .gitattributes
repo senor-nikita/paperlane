@@ -1,0 +1,10 @@
+* text=auto eol=lf
+package-lock.json -diff
+
+# Die Icons aus S5.3 und der Testkorpus sind Binaerdateien. `text=auto` laesst
+# Git den Inhalt raten; ein Fehlgriff waere eine stumme Beschaedigung beim
+# Auschecken. Deshalb ausdruecklich.
+*.png -text
+*.ico -text
+*.icns -text
+*.pdf -text

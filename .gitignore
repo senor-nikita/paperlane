@@ -1,0 +1,31 @@
+node_modules/
+out/
+dist/
+release/
+coverage/
+# Entsteht bei `npm run lizenztexte` aus node_modules
+build/generated/
+
+# Signierschluessel gehoeren nie ins Repository (S5.3, Aufgabe 4, D9 offen).
+# Die Sperre steht hier, bevor ein Zertifikat existiert - danach ist es zu spaet.
+*.pfx
+*.p12
+*.key
+*.pem
+
+*.log
+.DS_Store
+# Perf-Fixtures werden per `npm run fixtures` erzeugt (S0.3, S5.1), nicht committet
+test/fixtures/large-heavy.pdf
+test/fixtures/many-annotations.pdf
+test/fixtures/many-fields.pdf
+
+# Playwright
+test-results/
+playwright-report/
+
+# Interne Arbeitsnotizen bleiben lokal und gehoeren nicht ins oeffentliche
+# Repository: der Bauplan (plans/) und alles unter .claude/ - Checkpoint-
+# Protokoll, Pruefberichte, persoenliche Freigaben und Arbeitsverzeichnisse.
+.claude/
+plans/

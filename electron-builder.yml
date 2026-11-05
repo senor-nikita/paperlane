@@ -1,0 +1,76 @@
+# Paketierung (S5.3, Aufgabe 1).
+#
+# Nur der Windows-Weg (NSIS) ist lokal nachgewiesen. dmg und AppImage stehen
+# hier als Konfiguration und laufen in der CI; eine Maschine, auf der sie
+# gebaut werden koennten, gibt es im Projekt nicht.
+appId: de.paperlane.app
+productName: paperlane
+copyright: Copyright 2026 The paperlane contributors
+
+directories:
+  output: release
+  buildResources: build
+
+# Kein Update-Kanal (D8, ADR 0004). Ohne diese Zeile leitet electron-builder
+# aus dem Git-Remote selbsttaetig einen GitHub-Provider ab und legt eine
+# `app-update.yml` ins Paket — eine Update-Zusage, die das Projekt bewusst
+# nicht gibt. `null` verhindert die Datei; geprueft wird das in
+# `scripts/assert-kein-updater.mjs`.
+publish: null
+
+# `out/` ist das Ergebnis von `electron-vite build`; mehr braucht die
+# Anwendung zur Laufzeit nicht. LICENSE und NOTICE liegen daneben, weil
+# Apache-2.0 Paragraph 4(a) und 4(d) sie bei der Weitergabe verlangen (D10).
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: LICENSE
+    to: LICENSE
+  - from: NOTICE
+    to: NOTICE
+  # Lizenztexte der Laufzeit-Pakete (MIT/BSD verlangen sie bei der Weitergabe);
+  # `npm run lizenztexte` erzeugt die Datei vor jedem Paketieren.
+  - from: build/generated/THIRD_PARTY_LICENSES.txt
+    to: THIRD_PARTY_LICENSES.txt
+
+# Dateizuordnung (Aufgabe 2). `name` ist zugleich der Registrierungsschluessel
+# unter Windows (`Software\Classes\paperlane.pdf`) und muss deshalb mit dem
+# Namen in `build/installer.nsh` uebereinstimmen, das die Zuordnung wieder
+# entfernt, wenn der Nutzer sie abwaehlt.
+fileAssociations:
+  - ext: pdf
+    name: paperlane.pdf
+    description: PDF-Dokument
+    mimeType: application/pdf
+    role: Viewer
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  # Kein Ein-Klick-Installer: der Nutzer soll Zielverzeichnis und
+  # Dateizuordnung sehen und abwaehlen koennen (Aufgabe 2).
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  deleteAppDataOnUninstall: false
+  license: LICENSE
+  # Traegt die zusaetzliche Seite, auf der die Dateizuordnung abwaehlbar ist.
+  include: build/installer.nsh
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.productivity
+
+linux:
+  target:
+    - AppImage
+  category: Office

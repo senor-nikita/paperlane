@@ -1,0 +1,104 @@
+/*
+ * Minimale Fassung der pdf.js-Textebene. Die Spans liegen unsichtbar ueber dem
+ * Canvas und tragen die Textauswahl; ohne `position: absolute` und die
+ * Skalierungsvariable stapelt pdf.js sie am Seitenanfang.
+ *
+ * **Drehung.** pdf.js setzt `left`/`top` jedes Spans in Prozent der
+ * *ungedrehten* Seite und ueberlaesst die Drehung dem Viewer: dessen
+ * `setLayerDimensions` schreibt `data-main-rotation` an den Container, und die
+ * Viewer-CSS dreht daran. Diese Fassung uebernimmt genau diesen Mechanismus
+ * unter eigenem Namen (`data-drehung`) — die einzige Stelle im Projekt, an der
+ * ein CSS-`rotate` stehen darf. Begruendung und Abgrenzung: Aenderungshistorie
+ * zum 2026-09-08 und `test/guards/rotation.test.ts`.
+ *
+ * Der Container behaelt deshalb die ungedrehte Groesse (in `Textebene.tsx`
+ * gesetzt); die Drehung um den Ursprung samt Rueckschub legt ihn wieder
+ * deckungsgleich auf den Seitenkasten, der bei 90 und 270 Grad Breite und
+ * Hoehe getauscht hat. Damit bleibt `getBoundingClientRect()` des Containers
+ * der Seitenkasten — die Trefferrechtecke aus S1.4 rechnen weiter dagegen,
+ * ohne die CSS-Matrix invertieren zu muessen.
+ */
+.textebene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+
+  /* Ausweichwerte. `--scale-factor` setzt `Textebene.tsx`, `--min-font-size`
+     die TextLayer von pdf.js — beide am Container selbst, beide gewinnen. */
+  --scale-factor: 1;
+  --min-font-size: 1;
+}
+
+.textebene[data-drehung='90'] {
+  transform: rotate(90deg) translateY(-100%);
+}
+
+.textebene[data-drehung='180'] {
+  transform: rotate(180deg) translate(-100%, -100%);
+}
+
+.textebene[data-drehung='270'] {
+  transform: rotate(270deg) translateX(-100%);
+}
+
+.textebene span,
+.textebene br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0 0;
+}
+
+/* Markierter Inhalt ist eine reine Gruppierung. Erzeugte sie einen eigenen
+   Kasten, laegen die Spans darin an dessen statischer Position statt an der
+   der Seite. */
+.textebene .markedContent {
+  display: contents;
+}
+
+/*
+ * Schriftgroesse und Feinausrichtung je Span, wie in der Viewer-CSS von
+ * pdf.js. Ohne sie erben die Spans die Schriftgroesse der Anwendung: sie
+ * stehen dann zwar an der richtigen Stelle, sind aber verschieden lang — und
+ * ein Trefferrechteck, das aus einem `Range` in einem solchen Span kommt,
+ * sitzt entsprechend daneben.
+ *
+ * `--font-height` (in Punkten), `--scale-x` und `--rotate` setzt pdf.js je
+ * Span; `--rotate` faengt schraeg gesetzten Text ab und ist unabhaengig von
+ * der Seitendrehung oben.
+ */
+.textebene > :not(.markedContent),
+.textebene .markedContent span:not(.markedContent) {
+  --font-height: 0;
+  --scale-x: 1;
+  --rotate: 0deg;
+
+  font-size: calc(var(--scale-factor) * var(--min-font-size) * var(--font-height));
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(calc(1 / var(--min-font-size)));
+}
+
+.textebene ::selection {
+  background: rgba(0, 100, 255, 0.35);
+}
+
+.treffer {
+  position: absolute;
+  background: rgba(255, 214, 0, 0.45);
+  pointer-events: none;
+}
+
+/* Der aktuelle Treffer unterscheidet sich nicht nur im Farbton (WCAG 1.4.1),
+   sondern auch durch einen Rahmen - sichtbar auch bei Farbschwaeche und
+   Graustufen (S5.2a, Aufgabe 4). */
+.treffer-aktiv {
+  background: rgba(255, 132, 0, 0.65);
+  outline: 2px solid #7a3b00;
+  outline-offset: 1px;
+}

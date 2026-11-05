@@ -1,0 +1,111 @@
+/*
+ * Die Annotationsebene (S2.1).
+ *
+ * Hier steht nur, was sich inline nicht ausdruecken laesst — Zustaende wie
+ * `:hover` und `:focus-visible`. Die Geometrie bleibt in der Komponente: sie
+ * haengt an Zoom und Drehung und wird bei jeder Aenderung neu gerechnet.
+ *
+ * Die Ebene selbst nimmt **keine** Zeigereignisse an. Sonst waere die
+ * Textauswahl aus S1.4 ueber jeder Markierung tot. Nur die anklickbaren
+ * Flaechen — Verweise und Notizzettel — schalten sie wieder ein.
+ */
+.annotationsebene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.annotation-flaeche {
+  position: absolute;
+}
+
+.annotation-link,
+.annotation-notiz {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.annotation-link {
+  /* Ohne Rahmen im Ruhezustand: ein Verweis soll das Dokument nicht ueberzeichnen. */
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.annotation-link:hover,
+.annotation-link:focus-visible {
+  border-color: #2f6feb;
+  background: rgba(47, 111, 235, 0.12);
+  outline: none;
+}
+
+.annotation-notiz:focus-visible {
+  outline: 2px solid #2f6feb;
+  outline-offset: 1px;
+}
+
+/*
+ * Der aufgeklappte Notizzettel. Absolut ueber der Seite, damit ihn kein
+ * `overflow` der Nachbarschaft abschneidet; die Breite ist fest, weil eine
+ * Notiz sonst bei kleinem Zoom auf Briefmarkengroesse schrumpfte.
+ */
+.annotation-notizzettel {
+  position: absolute;
+  z-index: 2;
+  width: 220px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #d4b100;
+  border-radius: 3px;
+  background: #fffbe6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+  line-height: 1.35;
+  color: #1a1a1a;
+  pointer-events: auto;
+  white-space: pre-wrap;
+}
+
+.annotation-notizzettel-kopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.annotation-notizzettel-schliessen {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  font-size: 12px;
+  color: #555;
+}
+
+/*
+ * Das Eingabefeld des Notizzettels (S2.2). Uebernommen wird beim Verlassen —
+ * deshalb reicht ein gewoehnliches Textfeld ohne eigenen Absenden-Knopf.
+ */
+.annotation-notizzettel-eingabe {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #e0cf80;
+  border-radius: 2px;
+  padding: 0.25rem;
+  font: inherit;
+  color: inherit;
+  background: #fffdf2;
+  resize: vertical;
+}

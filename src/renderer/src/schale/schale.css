@@ -1,0 +1,294 @@
+/**
+ * Die Grundlagen der Bedienbarkeit, die fuer die ganze Schale gelten (S5.2a).
+ *
+ * Bewusst eine CSS-Datei und keine Inline-Stile wie sonst in der Schale: ein
+ * Fokusring laesst sich inline gar nicht setzen - `:focus-visible` ist eine
+ * Pseudoklasse. Bis hierher kam die Anwendung mit dem Browser-Standard aus;
+ * der ist auf hellem Grund schwer zu sehen, und Aufgabe 2 verlangt sichtbaren
+ * Fokus ueberall.
+ */
+
+/*
+ * Das Fenster scrollt nie als Ganzes - nur die Bereiche darin (Ansicht,
+ * Miniaturen, Gliederung). Ohne diese Regel behielt `body` den
+ * Browser-Standardrand von 8 px, die Schale darin ist `100vh` hoch, und das
+ * Fenster bekam eine zweite Scrollbar fuer genau diese 16 px.
+ */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--papier);
+  color: var(--tinte);
+  font:
+    14px/1.45 'Segoe UI Variable Text',
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/*
+ * Farben der Oberflaeche (S6.9): warmes Papier statt kaltem Grau, eine
+ * Akzentfarbe, Linien so leise wie moeglich. Schriften kommen vom System -
+ * eine Webschrift waere ein Netzwerkzugriff (Invariante 7) oder Ballast im
+ * Paket. Kontraste geprueft: Text #1f2328 und #5f5a52 auf allen Flaechen
+ * ueber 4,5:1, Knopfrand #8c857a ueber 3:1 (WCAG 1.4.11), Akzent auf
+ * Akzent-weich 6,5:1.
+ */
+:root {
+  --papier: #f4f1ec;
+  --tisch: #e7e3dc;
+  --flaeche: #fbfaf7;
+  --flaeche-2: #f6f3ee;
+  --karte: #ffffff;
+  --tinte: #1f2328;
+  --tinte-2: #5f5a52;
+  --linie: #e2ddd4;
+  --linie-stark: #8c857a;
+  --hover: #efebe4;
+  --akzent: #1a4fb4;
+  --akzent-dunkel: #153f90;
+  --akzent-weich: #e7eefb;
+  --schatten-seite: 0 1px 2px rgba(60, 48, 30, 0.12), 0 8px 24px rgba(60, 48, 30, 0.1);
+  --radius: 8px;
+}
+
+.marke {
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  margin-right: 0.25rem;
+}
+
+/*
+ * Die Kopfleiste (S6.9): eine Zeile, Gruppen durch eine leise Linie
+ * getrennt, Symbole statt Woerter, wo das Symbol eindeutig ist. Bei
+ * schmalem Fenster bricht sie um, statt seitlich zu scrollen.
+ */
+.kopfleiste {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--linie);
+  background: var(--flaeche);
+}
+
+.gruppe {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--linie);
+}
+
+.leise {
+  color: var(--tinte-2);
+}
+
+.zoomwert {
+  min-width: 3.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.dokumentname {
+  margin-left: auto;
+  max-width: 22em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9em;
+}
+
+.suchfeld {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--linie-stark);
+  border-radius: var(--radius);
+  background: var(--karte);
+  color: var(--tinte-2);
+}
+
+.suchfeld:focus-within {
+  outline: 3px solid var(--akzent);
+  outline-offset: 2px;
+}
+
+.suchfeld input {
+  width: 9rem;
+  border: none;
+  padding: 0.3rem 0;
+  background: transparent;
+}
+
+.suchfeld input:focus-visible {
+  outline: none;
+}
+
+.trefferstand {
+  min-width: 5.5em;
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.85em;
+  color: var(--tinte-2);
+}
+
+/*
+ * Der eine Knopf der Anwendung. Rand mit 3:1 (WCAG 1.4.11, S5.2a), aber
+ * warm und mit Radius; gedrueckt ueber `aria-pressed`, damit Zustand und
+ * Ansage aus derselben Quelle kommen.
+ */
+.knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 30px;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--linie-stark);
+  border-radius: var(--radius);
+  background: var(--karte);
+  color: var(--tinte);
+  font: inherit;
+  cursor: pointer;
+}
+
+.knopf:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.knopf:active:not(:disabled) {
+  background: var(--linie);
+}
+
+.knopf[aria-pressed='true'] {
+  background: var(--akzent-weich);
+  border-color: var(--akzent);
+  color: var(--akzent);
+}
+
+.knopf:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* Nur ein Symbol: quadratisch und ohne Rand, bis Zeiger oder Fokus kommen.
+   Das Symbol selbst traegt den Kontrast (Tinte auf Flaeche, ueber 3:1). */
+.knopf-symbol {
+  min-width: 32px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+/* Zweitrangige Textknoepfe: ohne Rand, leisere Schrift. */
+.knopf-leise {
+  border-color: transparent;
+  background: transparent;
+  color: var(--tinte-2);
+}
+
+.knopf-primaer {
+  background: var(--akzent);
+  border-color: var(--akzent);
+  color: #ffffff;
+}
+
+.knopf-primaer:hover:not(:disabled) {
+  background: var(--akzent-dunkel);
+}
+
+:where(input[type='text'], input[type='number'], input[type='password'], select, textarea) {
+  font: inherit;
+  color: var(--tinte);
+  background: var(--karte);
+  border: 1px solid var(--linie-stark);
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .knopf {
+    transition:
+      background-color 150ms ease-out,
+      border-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+}
+
+/*
+ * Ein Ring, kein Rahmen: `outline` nimmt keinen Platz im Layout und
+ * verschiebt deshalb nichts, wenn er erscheint. `outline-offset` haelt ihn
+ * von der Schrift weg, damit er auch dicht an dicht lesbar bleibt.
+ *
+ * Nur `:focus-visible`, nicht `:focus`: sonst bekaeme jeder Mausklick einen
+ * Ring, und wer mit der Maus arbeitet, liest ihn als Fehler.
+ */
+:focus-visible {
+  outline: 3px solid #1a4fb4;
+  outline-offset: 2px;
+}
+
+/*
+ * Fuer Text, der nur angesagt und nicht gezeigt werden soll - die Ueberschrift
+ * der Anwendung und die Namen der Landmarken.
+ *
+ * `clip-path` statt `display: none` oder `visibility: hidden`: die beiden
+ * nehmen das Element auch aus dem Zugaenglichkeitsbaum, und dann saehe der
+ * Screenreader ebenfalls nichts.
+ */
+.nur-fuer-screenreader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * Die Sprungmarke steht als erstes im Dokument und bleibt unsichtbar, bis sie
+ * den Fokus bekommt. Wer mit der Tastatur ankommt, ueberspringt damit Kopf-
+ * und Werkzeugleiste; wer die Maus nimmt, sieht sie nie.
+ */
+.sprungmarke {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 2px solid #1a4fb4;
+  border-radius: 0 0 4px 0;
+  text-decoration: underline;
+  transform: translateY(-120%);
+}
+
+.sprungmarke:focus {
+  transform: translateY(0);
+}
+
+/*
+ * Wer im Betriebssystem weniger Bewegung verlangt hat, bekommt auch hier
+ * keine: die Sprungmarke springt dann ohne Uebergang ins Bild.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .sprungmarke {
+    transition: transform 120ms ease-out;
+  }
+}

@@ -1,0 +1,25 @@
+paperlane
+Copyright 2026 The paperlane contributors
+
+This product includes software developed by third parties under the
+Apache License, Version 2.0:
+
+  - pdf.js (pdfjs-dist), Copyright Mozilla Foundation and contributors
+
+and under the MIT and BSD licenses (React, zustand, pdf-lib, docx and
+their dependencies, among others).
+
+The license texts and copyright notices of every third-party package
+that is part of the installed application are reproduced in
+THIRD_PARTY_LICENSES.txt, next to this file. Electron and Chromium come
+with their own notices in LICENSE.electron.txt and LICENSES.chromium.html.
+
+Development-only tools (test runners, linters, build tools) are not part
+of the installed application. The complete list of dependencies, versions
+and licenses is maintained in THIRD_PARTY.md and checked against
+package.json by `npm run guard:third-party`.
+
+paperlane is an independent project. It is not affiliated with, endorsed
+by, or sponsored by Adobe Inc. or any other vendor whose file formats it
+reads. Product names and trademarks are the property of their respective
+owners.

@@ -1,0 +1,104 @@
+/*
+ * Die Formularebene (S3.1).
+ *
+ * Wie bei der Annotationsebene: hier steht nur, was sich inline nicht
+ * ausdruecken laesst - Fokus, Hover, die Zustaende eines Feldes. Die
+ * Geometrie bleibt in der Komponente, sie haengt an Zoom und Drehung.
+ *
+ * Die Ebene selbst nimmt keine Zeigereignisse an; die Felder schon. So
+ * bleibt die Textauswahl zwischen den Feldern lebendig.
+ */
+.formularebene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.formularfeld {
+  position: absolute;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 0.25em;
+  font-family: system-ui, sans-serif;
+  color: #1a1a1a;
+  background: rgba(220, 235, 255, 0.55);
+  border: 1px solid #7a9cc6;
+  border-radius: 2px;
+  pointer-events: auto;
+}
+
+.formularfeld-text {
+  line-height: 1.2;
+}
+
+textarea.formularfeld {
+  resize: none;
+  padding: 0.2em 0.25em;
+}
+
+.formularfeld-kontrollkaestchen,
+.formularfeld-auswahlknopf {
+  padding: 0;
+  /* Das native Kaestchen skaliert nicht ueber width/height allein. */
+  accent-color: #2f6feb;
+  cursor: pointer;
+}
+
+/*
+ * Sichtbarer Fokus (Aufgabe 3). Nicht nur der Rahmen des Browsers: der ist
+ * bei kleinen Feldern und starkem Zoom leicht zu uebersehen.
+ */
+.formularfeld:focus-visible {
+  outline: 3px solid #2f6feb;
+  outline-offset: 1px;
+  background: #ffffff;
+}
+
+/* Pflichtfeld: eine kraeftige linke Kante, auch ohne Farbsehen erkennbar. */
+.formularfeld-pflicht {
+  border-left-width: 4px;
+  border-left-color: #a05000;
+}
+
+.formularfeld-gesperrt {
+  background: rgba(230, 230, 230, 0.7);
+  border-style: dashed;
+  color: #555;
+  cursor: not-allowed;
+}
+
+/* Ungueltig: die Meldung steht im Titel, der Rahmen macht sie auffindbar. */
+.formularfeld-ungueltig {
+  border-color: #c0392b;
+  box-shadow: inset 0 0 0 1px #c0392b;
+}
+
+.formularfeld-schaltflaeche {
+  cursor: not-allowed;
+  color: #666;
+}
+
+.formularfeld-signatur {
+  border-style: dashed;
+  background: rgba(255, 244, 214, 0.6);
+}
+
+/*
+ * Der Hinweis auf ein Skript, das nicht ausgefuehrt wird (Aufgabe 4). Ein
+ * kleines Zeichen am rechten Rand des Feldes; die Erklaerung steht im Titel
+ * und im aria-label.
+ */
+.formularfeld-skripthinweis {
+  position: absolute;
+  transform: translate(2px, 0);
+  padding: 0 0.3em;
+  font:
+    700 10px/1.6 system-ui,
+    sans-serif;
+  color: #fff;
+  background: #a05000;
+  border-radius: 2px;
+  pointer-events: auto;
+  cursor: help;
+}
