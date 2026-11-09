@@ -115,7 +115,7 @@ describe('speichere mit Formular (S3.2)', () => {
     await speichere('gleich', { flachlegen: true })
 
     expect(dokumentSpeichern.mock.calls[0]?.[0]?.flachlegen).toBe(true)
-    expect(useDokument.getState().hinweis).toMatch(/Flachgelegt/)
+    expect(useDokument.getState().hinweis).toMatch(/Festgeschrieben/)
     expect(ladePfadNeu).toHaveBeenCalledWith(QUELLE)
   })
 })

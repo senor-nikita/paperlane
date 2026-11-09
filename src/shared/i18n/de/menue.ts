@@ -22,7 +22,7 @@ export const menue = {
   'befehl.oeffnen': 'Dokument öffnen',
   'befehl.speichern': 'Speichern',
   'befehl.speichernUnter': 'Speichern unter',
-  'befehl.formularFlachlegen': 'Formular flachlegen',
+  'befehl.formularFlachlegen': 'Formular festschreiben',
   'befehl.fdfExportieren': 'Formulardaten als FDF exportieren',
   'befehl.seiteLoeschen': 'Seite löschen',
   'befehl.zusammenfuehren': 'PDFs zusammenführen',

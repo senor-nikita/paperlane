@@ -37,7 +37,9 @@ beforeEach(() => {
     name: null,
     seitenzahl: 0,
     aktuelleSeite: 1,
-    dokument: null
+    dokument: null,
+    // Ein Hinweis aus dem vorigen Test bliebe sonst stehen.
+    hinweis: null
   })
   setzeTabsZurueck()
   // Die Wiederherstellung laeuft einmal je Fenster - hier einmal je Test.
@@ -523,6 +525,40 @@ describe('Zuletzt geoeffnet und Drag & Drop', () => {
     stubBruecke({ pfadVonDatei: () => '' })
     render(<App />)
     fireEvent.drop(screen.getByTestId('fenster'), { dataTransfer: ablage('bild.png') })
+    await waitFor(() => {
+      expect(screen.getByTestId('hinweis').textContent).toContain('keine Datei')
+    })
+  })
+
+  // Markierten Text mit der Maus zu ziehen ist ein Drag ohne Dateien. Er darf
+  // weder den Rahmen noch den Hinweis "keine Datei" ausloesen (so meldete es
+  // vorher, sobald jemand im Dokument Text markieren wollte).
+  it('ignoriert einen Drag ohne Dateien, etwa markierten Text', () => {
+    stubBruecke({})
+    render(<App />)
+    const text = { files: [], types: ['text/plain'] } as unknown as DataTransfer
+    const fenster = screen.getByTestId('fenster')
+    // `fireEvent` liefert false, wenn der Handler preventDefault aufgerufen hat.
+    expect(fireEvent.dragOver(fenster, { dataTransfer: text })).toBe(true)
+    expect(fenster.style.outline).toBe('none')
+    fireEvent.drop(fenster, { dataTransfer: text })
+    expect(screen.queryByTestId('hinweis')).toBeNull()
+  })
+
+  it('nimmt einen Datei-Drag an und zeigt den Rahmen', () => {
+    stubBruecke({})
+    render(<App />)
+    const dateien = { files: [], types: ['Files'] } as unknown as DataTransfer
+    const fenster = screen.getByTestId('fenster')
+    expect(fireEvent.dragOver(fenster, { dataTransfer: dateien })).toBe(false)
+    expect(fenster.style.outline).toContain('dashed')
+  })
+
+  it('meldet weiter, wenn ein Datei-Drag am Ende keine Datei traegt', async () => {
+    stubBruecke({})
+    render(<App />)
+    const leer = { files: [], types: ['Files'] } as unknown as DataTransfer
+    fireEvent.drop(screen.getByTestId('fenster'), { dataTransfer: leer })
     await waitFor(() => {
       expect(screen.getByTestId('hinweis').textContent).toContain('keine Datei')
     })

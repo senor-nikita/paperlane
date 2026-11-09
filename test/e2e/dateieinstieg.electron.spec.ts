@@ -184,6 +184,46 @@ test('ein Geraetepfad wird ohne Rueckfrage abgelehnt', async () => {
 })
 
 /**
+ * Text mit der Maus zu markieren und zu ziehen ist ein Drag ohne Dateien. Das
+ * Fenster darf ihn weder annehmen noch "Es wurde keine Datei uebergeben."
+ * melden (so war es, sobald jemand im Dokument Text ziehen wollte). Ein Drag
+ * mit einer Datei wird weiter angenommen. Die Ereignisse tragen echte
+ * `DataTransfer`-Objekte von Chromium; ein Datei-Drag aus dem Betriebssystem
+ * liesse sich nicht ausloesen, wohl aber ein `File` im `DataTransfer`.
+ */
+test('ein Drag ohne Dateien meldet nichts, ein Datei-Drag wird angenommen', async () => {
+  const gestartet = await startApp()
+  try {
+    const ergebnis = await gestartet.fenster.evaluate(() => {
+      const ziel = document.querySelector('[data-testid="fenster"]')
+      if (ziel === null) throw new Error('Kein Fenster gefunden')
+      const sende = (art: string, daten: DataTransfer): boolean => {
+        const ereignis = new DragEvent(art, {
+          dataTransfer: daten,
+          bubbles: true,
+          cancelable: true
+        })
+        ziel.dispatchEvent(ereignis)
+        return ereignis.defaultPrevented
+      }
+      const text = new DataTransfer()
+      text.setData('text/plain', 'markierter Text')
+      const datei = new DataTransfer()
+      datei.items.add(new File(['%PDF'], 'a.pdf', { type: 'application/pdf' }))
+      return {
+        textUeber: sende('dragover', text),
+        textAblage: sende('drop', text),
+        dateiUeber: sende('dragover', datei)
+      }
+    })
+    expect(ergebnis).toEqual({ textUeber: false, textAblage: false, dateiUeber: true })
+    await expect(gestartet.fenster.getByTestId('hinweis')).toHaveCount(0)
+  } finally {
+    await gestartet.schliessen()
+  }
+})
+
+/**
  * Exit-Kriterium: eine Nicht-PDF-Datei erzeugt eine Meldung statt eines
  * Fehlers. Geprueft wird die echte IPC-Strecke bis in den Main-Prozess.
  */

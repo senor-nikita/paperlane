@@ -32,6 +32,16 @@ import { useUebersicht } from './uebersicht-store'
 import './schale/schale.css'
 
 /**
+ * Bringt der Drag Dateien? Beim Ablegen stehen sie in `files`, schon beim
+ * Darueberziehen nennt der Browser sie nur als Typ "Files" in `types`.
+ * Markierter Text, den die Maus zieht, Links und die Miniaturen beim
+ * Umordnen tragen keinen davon.
+ */
+function traegtDateien(daten: DataTransfer): boolean {
+  return daten.files.length > 0 || Array.from(daten.types).includes('Files')
+}
+
+/**
  * Die Schale der Anwendung.
  *
  * Sie haelt nur zusammen, was zusammengehoert: die Anordnung, das Fallenlassen
@@ -88,10 +98,14 @@ export function App(): React.JSX.Element {
    * der ihn prueft.
    */
   const beiDrop = (ereignis: React.DragEvent): void => {
-    ereignis.preventDefault()
     setUeberFenster(false)
     const api = bruecke()
     const dateien = Array.from(ereignis.dataTransfer.files)
+    // Ein Drag ohne Dateien ist keine Ablage: markierter Text, den die Maus
+    // zieht, ein Link, ein Miniaturbild beim Umordnen. Das meldet nichts - der
+    // Hinweis "keine Datei" gilt nur dem, der eine Datei meinte (s. u.).
+    if (!traegtDateien(ereignis.dataTransfer)) return
+    ereignis.preventDefault()
     if (api === undefined || dateien.length === 0) {
       setzeHinweis(t('app.keineDatei'))
       return
@@ -135,6 +149,10 @@ export function App(): React.JSX.Element {
     <div
       data-testid="fenster"
       onDragOver={(ereignis) => {
+        // Nur Dateien lassen sich hier ablegen; sonst bliebe nach dem Ziehen
+        // von Text der gestrichelte Rahmen stehen und das Drop meldete "keine
+        // Datei".
+        if (!traegtDateien(ereignis.dataTransfer)) return
         // Ohne preventDefault laesst der Browser das Drop gar nicht erst zu.
         ereignis.preventDefault()
         setUeberFenster(true)

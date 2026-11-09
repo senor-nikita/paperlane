@@ -127,11 +127,11 @@ export const main = {
     mehr: '{anzahl} Dateien im Zielordner existieren bereits. Überschreiben?'
   },
   'dateien.knopf': 'Überschreiben',
-  'flach.titel': 'Formular flachlegen',
-  'flach.frage': 'Das Formular wird flachgelegt. Das lässt sich nicht rückgängig machen.',
+  'flach.titel': 'Formular festschreiben',
+  'flach.frage': 'Das Formular wird festgeschrieben. Das lässt sich nicht rückgängig machen.',
   'flach.detail':
     'Alle Felder werden zu festem Seiteninhalt. Die Datei ist danach kein Formular mehr: nichts lässt sich mehr ausfüllen oder ändern, auch nicht in anderen Programmen. Die Anwendung schreibt das Ergebnis in die Datei.',
-  'flach.knopf': 'Flachlegen und speichern',
+  'flach.knopf': 'Festschreiben und speichern',
   'signaturen.titel': 'Vorhandene Signaturen werden ungültig',
   'signaturen.frage': 'Dieses Dokument ist digital signiert.',
   'signaturen.detail':

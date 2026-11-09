@@ -87,7 +87,7 @@ Systemzuordnung), deshalb laesst sich ein per Drag & Drop geoeffnetes Dokument n
 eine **nicht abschaltbare Warnung**.
 
 **Formulare.** AcroForm-Felder ausfuellen; beim Speichern werden nur die geaenderten
-Felder geschrieben, schreibgeschuetzte uebersprungen. **Flachlegen** fragt vorher nach
+Felder geschrieben, schreibgeschuetzte uebersprungen. **Festschreiben** (englisch _flatten_) fragt vorher nach
 (Vorgabe: Abbrechen), denn es ist nicht umkehrbar. **FDF-Export** nach PDF 32000-1
 §12.7.7.
 
@@ -139,7 +139,7 @@ Signaturvalidierung und kein Zertifikatsmanagement. Was paperlane „Signatur" n
 ist ein Bild.
 
 **Verschluesselte PDFs sind nur lesbar.** Sie lassen sich mit Passwort oeffnen,
-anzeigen, durchsuchen und kommentieren, aber nicht speichern, flachlegen, drucken,
+anzeigen, durchsuchen und kommentieren, aber nicht speichern, festschreiben, drucken,
 zusammenfuehren, teilen oder ueber Seitenoperationen veraendern: all das schreibt das
 Dokument ueber pdf-lib neu, pdf-lib kann es nicht entschluesseln, und die
 Verschluesselung liesse sich dabei nicht erhalten. Die betroffenen Befehle sind
