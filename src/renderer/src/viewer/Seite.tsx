@@ -9,6 +9,7 @@ import type { SeitenPlatz } from './layout'
 import type { RenderQueue } from './renderqueue'
 import { Textbearbeitungsebene } from './Textbearbeitungsebene'
 import { Textebene } from './Textebene'
+import { zeichneUnterschriften } from './unterschriften'
 import { Zuschnittebene } from './Zuschnittebene'
 import { t } from '../../../shared/i18n'
 import { useT } from '../sprache'
@@ -88,6 +89,25 @@ export function Seite({ platz, queue }: SeiteProps): React.JSX.Element {
       queue.starte(index, auftrag)
       await auftrag.promise
       queue.fertig(index)
+
+      // Das Aussehen digitaler Unterschriften: DISABLE malt es nicht, und die
+      // Formularebene setzt nur eine leere Flaeche an die Stelle (`unterschriften.ts`).
+      // Ein Fehler hier laesst die Seite stehen, wie sie ist - die Unterschrift
+      // fehlt dann, die Seite bleibt lesbar.
+      if (abgebrochen) return
+      try {
+        await zeichneUnterschriften(seite, kontext, viewport, {
+          merke: (nachtrag) => {
+            queue.starte(index, nachtrag)
+          }
+        })
+      } catch (fehler) {
+        if (!(fehler instanceof Error && fehler.name === 'RenderingCancelledException')) {
+          console.error('Unterschriften auf Seite ' + String(index + 1) + ' fehlen:', fehler)
+        }
+      } finally {
+        queue.fertig(index)
+      }
     }
 
     void zeichne().catch((fehler: unknown) => {

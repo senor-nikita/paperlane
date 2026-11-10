@@ -26,6 +26,8 @@ function fakeSeite(abbruch: () => void) {
       width: 595 * scale,
       height: 842 * scale
     })),
+    // Ohne Unterschriftsfelder: die Seite hat nur eine Annotationsliste.
+    getAnnotations: vi.fn(() => Promise.resolve([] as unknown[])),
     render: vi.fn(() => ({ promise: Promise.resolve(), cancel: abbruch }))
   }
 }
@@ -52,6 +54,107 @@ describe('Seite', () => {
     // S5.2a, Aufgabe 4: das Bild hat Rolle und Namen fuer Screenreader.
     expect(canvas.getAttribute('role')).toBe('img')
     expect(canvas.getAttribute('aria-label')).toBe('Seite 1')
+  })
+
+  // Befund vom 2026-11-10: ein mit einem anderen Programm signiertes Formular
+  // zeigte die Unterschrift nicht. `annotationMode: DISABLE` malt kein
+  // Unterschriftsfeld, und die Formularebene setzt nur eine leere Flaeche
+  // darueber. Die Seite holt das Aussehen jetzt in einem zweiten Durchgang nach.
+  describe('Unterschriften', () => {
+    const unterschrift = {
+      subtype: 'Widget',
+      fieldType: 'Sig',
+      hasAppearance: true,
+      rect: [50, 100, 150, 150]
+    }
+
+    function seiteMitUnterschrift(
+      zweiterDurchgang: () => { promise: Promise<void>; cancel: () => void }
+    ) {
+      const render = vi
+        .fn()
+        .mockReturnValueOnce({ promise: Promise.resolve(), cancel: vi.fn() })
+        .mockImplementation(zweiterDurchgang)
+      const blick = {
+        width: 595,
+        height: 842,
+        offsetX: 0,
+        offsetY: 0,
+        // pdf.js 6: nur noch die Matrix, y' = 842 - y.
+        transform: [1, 0, 0, -1, 0, 842],
+        clone: vi.fn(() => ({ art: 'ausschnitt' }))
+      }
+      return {
+        getViewport: vi.fn(() => blick),
+        getAnnotations: vi.fn(() => Promise.resolve([unterschrift])),
+        render
+      }
+    }
+
+    it('zeichnet das Aussehen einer Unterschrift im Modus ENABLE_FORMS nach', async () => {
+      const drawImage = vi.fn()
+      HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+        drawImage
+      })) as unknown as HTMLCanvasElement['getContext']
+      const seite = seiteMitUnterschrift(() => ({ promise: Promise.resolve(), cancel: vi.fn() }))
+      useDokument.setState({ dokument: { getPage: vi.fn(() => Promise.resolve(seite)) } as never })
+      render(<Seite platz={PLATZ} queue={new RenderQueue()} />)
+      await waitFor(() => {
+        expect(drawImage).toHaveBeenCalledTimes(1)
+      })
+      // Erst die Seite selbst mit DISABLE, dann das Rechteck des Feldes mit
+      // ENABLE_FORMS (2).
+      expect(seite.render).toHaveBeenCalledTimes(2)
+      expect(seite.render.mock.calls[0]?.[0]).toMatchObject({ annotationMode: 0 })
+      expect(seite.render.mock.calls[1]?.[0]).toMatchObject({ annotationMode: 2 })
+    })
+
+    it('laesst die Seite stehen, wenn das Nachzeichnen scheitert', async () => {
+      const fehler = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+        drawImage: vi.fn()
+      })) as unknown as HTMLCanvasElement['getContext']
+      const seite = seiteMitUnterschrift(() => ({
+        promise: Promise.reject(new Error('kaputt')),
+        cancel: vi.fn()
+      }))
+      useDokument.setState({ dokument: { getPage: vi.fn(() => Promise.resolve(seite)) } as never })
+      const { queryByTestId } = render(<Seite platz={PLATZ} queue={new RenderQueue()} />)
+      await waitFor(() => {
+        expect(fehler).toHaveBeenCalledWith(
+          expect.stringContaining('Unterschriften'),
+          expect.any(Error)
+        )
+      })
+      // Die Unterschrift fehlt, die Seite bleibt lesbar und gilt nicht als kaputt.
+      expect(queryByTestId('seite-kaputt-1')).toBeNull()
+    })
+
+    it('meldet einen abgebrochenen Auftrag nicht als Fehler', async () => {
+      const fehler = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+        drawImage: vi.fn()
+      })) as unknown as HTMLCanvasElement['getContext']
+      const abbruch = Object.assign(new Error('abgebrochen'), {
+        name: 'RenderingCancelledException'
+      })
+      const seite = seiteMitUnterschrift(() => ({
+        promise: Promise.reject(abbruch),
+        cancel: vi.fn()
+      }))
+      useDokument.setState({ dokument: { getPage: vi.fn(() => Promise.resolve(seite)) } as never })
+      render(<Seite platz={PLATZ} queue={new RenderQueue()} />)
+      await waitFor(() => {
+        expect(seite.render).toHaveBeenCalledTimes(2)
+      })
+      await Promise.resolve()
+      // Die Attrappe hat kein `getTextContent`; die Textebene daneben meldet
+      // das selbst. Hier zaehlt nur die Meldung zu den Unterschriften.
+      expect(fehler).not.toHaveBeenCalledWith(
+        expect.stringContaining('Unterschriften'),
+        expect.anything()
+      )
+    })
   })
 
   it('gibt die Drehung an getViewport weiter, nicht an CSS', async () => {

@@ -32,6 +32,16 @@
   line-height: 1.2;
 }
 
+/*
+ * Ein Unterschriftsfeld liegt ueber dem Aussehen der Unterschrift, das in die
+ * Canvas gezeichnet ist (unterschriften.ts). Die Faerbung der anderen Felder
+ * liesse die Handschrift verblassen; hier bleibt nur ein Hauch, damit ein
+ * leeres Feld trotzdem auffaellt.
+ */
+.formularfeld-signatur {
+  background: rgba(220, 235, 255, 0.12);
+}
+
 textarea.formularfeld {
   resize: none;
   padding: 0.2em 0.25em;

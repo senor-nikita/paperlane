@@ -27,6 +27,17 @@ export const PDFJS_HAERTUNG = {
 export const ANNOTATIONSMODUS_AUS = 0
 
 /**
+ * `AnnotationMode.ENABLE_FORMS`. Der eine Modus neben DISABLE, den die
+ * Anwendung benutzt - und nur fuer die Unterschriftsfelder (`unterschriften.ts`):
+ * dort malt pdf.js das Aussehen einer Unterschrift in die Canvas, waehrend
+ * Eingabefelder der HTML-Ebene bleiben. Die Hauptansicht zeichnet weiter mit
+ * DISABLE; aus dem Ergebnis dieses Modus wird nur das Rechteck eines
+ * Unterschriftsfeldes uebernommen. Der Guard-Test gleicht auch diesen Wert
+ * gegen die Bibliothek ab.
+ */
+export const ANNOTATIONSMODUS_FORMULARE = 2
+
+/**
  * Die Haertung fuer das Zeichnen einer Seite (Invariante 6, scharf ab S2.1).
  *
  * `annotationMode` ist kein Parameter von `getDocument`, sondern von

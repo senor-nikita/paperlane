@@ -3,6 +3,7 @@ import { join, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   ANNOTATIONSMODUS_AUS,
+  ANNOTATIONSMODUS_FORMULARE,
   PDFJS_HAERTUNG,
   PDFJS_RENDER_HAERTUNG
 } from '../../src/renderer/src/pdf-haertung'
@@ -66,11 +67,48 @@ describe('Annotationsmodus', () => {
     expect(zeichnende).toEqual([
       'src/renderer/src/png-export.ts',
       'src/renderer/src/viewer/Miniatur.tsx',
-      'src/renderer/src/viewer/Seite.tsx'
+      'src/renderer/src/viewer/Seite.tsx',
+      'src/renderer/src/viewer/unterschriften.ts'
     ])
     for (const pfad of zeichnende) {
+      // Die eine begruendete Ausnahme: das Aussehen digitaler Unterschriften
+      // (siehe unten). Jede andere Stelle gibt die Haertung mit.
+      if (pfad === 'src/renderer/src/viewer/unterschriften.ts') continue
       expect(readFileSync(pfad, 'utf8')).toMatch(/\.render\(\{[^)]*PDFJS_RENDER_HAERTUNG/)
     }
+  })
+
+  /**
+   * DISABLE malt kein Unterschriftsfeld: das Aussehen einer digitalen
+   * Unterschrift ist ein fertiges Bild im Dokument, und ohne es zeigte die
+   * Ansicht eine leere Flaeche, wo in anderen Programmen die Unterschrift steht.
+   * Deshalb zeichnet `unterschriften.ts` die Seite ein zweites Mal im Modus
+   * ENABLE_FORMS und uebernimmt daraus nur das Rechteck des Feldes. Diese
+   * Ausnahme gilt fuer genau diese Datei und genau diesen Modus - sie darf
+   * weder `ENABLE` noch `ENABLE_STORAGE` benutzen (das brennte Anmerkungen ein,
+   * auch geloeschte) und nicht in eine zweite Datei wandern.
+   */
+  it('zeichnet das Aussehen der Unterschriften als einzige Stelle im Modus ENABLE_FORMS', () => {
+    const quelle = readFileSync('src/renderer/src/viewer/unterschriften.ts', 'utf8')
+    expect(quelle).toMatch(/annotationMode:\s*ANNOTATIONSMODUS_FORMULARE/)
+    // Nur dieses Rechteck wird uebernommen, nie die ganze Seite.
+    expect(quelle).toMatch(/drawImage\(\s*canvas,\s*flaeche\.x - links/)
+    const verwender = dateien('src')
+      .filter((pfad) => pfad.endsWith('.ts') || pfad.endsWith('.tsx'))
+      .filter((pfad) => /ANNOTATIONSMODUS_FORMULARE/.test(readFileSync(pfad, 'utf8')))
+      .map((pfad) => pfad.split(sep).join(String.fromCharCode(47)))
+    expect(verwender).toEqual([
+      'src/renderer/src/pdf-haertung.ts',
+      'src/renderer/src/viewer/unterschriften.ts'
+    ])
+  })
+
+  it('haelt ANNOTATIONSMODUS_FORMULARE gegen AnnotationMode.ENABLE_FORMS aus pdf.js', () => {
+    const quelle = readFileSync('node_modules/pdfjs-dist/build/pdf.mjs', 'utf8')
+    const block = /const AnnotationMode = \{([^}]*)\}/.exec(quelle)
+    const treffer = /ENABLE_FORMS:\s*(\d+)/.exec(block?.[1] ?? '')
+    expect(treffer).not.toBeNull()
+    expect(Number(treffer?.[1])).toBe(ANNOTATIONSMODUS_FORMULARE)
   })
 })
 
